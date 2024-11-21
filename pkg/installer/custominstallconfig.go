@@ -6,6 +6,7 @@ package installer
 import (
 	"context"
 	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -48,6 +49,23 @@ var (
 	}
 )
 
+// XXX HACK - put this here for now
+// AROImageRegistryConfig is an asset for the openshift-apiserver namespace
+type AROImageRegistryConfig struct {
+	AccountName   string
+	ContainerName string
+	HTTPSecret    string
+}
+
+// XXX HACK - put this here for now
+// ARODNSConfig is an asset for the openshift-apiserver namespace
+type ARODNSConfig struct {
+	APIIntIP                 string
+	IngressIP                string
+	GatewayDomains           []string
+	GatewayPrivateEndpointIP string
+}
+
 // applyInstallConfigCustomisations modifies the InstallConfig and creates
 // parent assets, then regenerates the InstallConfig for use for Ignition
 // generation, etc.
@@ -61,7 +79,20 @@ func (m *manager) applyInstallConfigCustomisations(installConfig *installconfig.
 	if err != nil {
 		return nil, err
 	}
-	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig=%v\n", bootstrapLoggingConfig)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.Certificate=%s\n", bootstrapLoggingConfig.Certificate)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.Key=%s\n", bootstrapLoggingConfig.Key)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.Namespace=%s\n", bootstrapLoggingConfig.Namespace)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.Environment=%s\n", bootstrapLoggingConfig.Environment)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.Account=%s\n", bootstrapLoggingConfig.Account)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.ConfigVersion=%s\n", bootstrapLoggingConfig.ConfigVersion)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.ResourceID=%s\n", bootstrapLoggingConfig.ResourceID)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.SubscriptionID=%s\n", bootstrapLoggingConfig.SubscriptionID)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.Region=%s\n", bootstrapLoggingConfig.Region)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.ResourceName=%s\n", bootstrapLoggingConfig.ResourceName)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.ResourceGroupName=%s\n", bootstrapLoggingConfig.ResourceGroupName)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.File=%v\n", bootstrapLoggingConfig.File)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.FluentbitImage=%s\n", bootstrapLoggingConfig.FluentbitImage)
+	fmt.Fprintf(os.Stderr, "XXX: bootstrapLoggingConfig.MdsdImage=%s\n", bootstrapLoggingConfig.MdsdImage)
 
 	httpSecret := make([]byte, 64)
 	_, err = rand.Read(httpSecret)
@@ -69,23 +100,25 @@ func (m *manager) applyInstallConfigCustomisations(installConfig *installconfig.
 		return nil, err
 	}
 
-	/*
-		imageRegistryConfig := &AROImageRegistryConfig{
-			AccountName:   m.oc.Properties.ImageRegistryStorageAccountName,
-			ContainerName: "image-registry",
-			HTTPSecret:    hex.EncodeToString(httpSecret),
-		}
+	fmt.Fprintf(os.Stderr, "XXX: AccountName=%s\n", m.oc.Properties.ImageRegistryStorageAccountName)
 
-		dnsConfig := &ARODNSConfig{
-			APIIntIP:  m.oc.Properties.APIServerProfile.IntIP,
-			IngressIP: m.oc.Properties.IngressProfiles[0].IP,
-		}
+	imageRegistryConfig := &AROImageRegistryConfig{
+		AccountName:   m.oc.Properties.ImageRegistryStorageAccountName,
+		ContainerName: "image-registry",
+		HTTPSecret:    hex.EncodeToString(httpSecret),
+	}
+	fmt.Fprintf(os.Stderr, "XXX: imageRegistryConfig=%v\n", imageRegistryConfig)
 
-		if m.oc.Properties.NetworkProfile.GatewayPrivateEndpointIP != "" {
-			dnsConfig.GatewayPrivateEndpointIP = m.oc.Properties.NetworkProfile.GatewayPrivateEndpointIP
-			dnsConfig.GatewayDomains = append(m.env.GatewayDomains(), m.oc.Properties.ImageRegistryStorageAccountName+".blob."+m.env.Environment().StorageEndpointSuffix)
-		}
-	*/
+	dnsConfig := &ARODNSConfig{
+		APIIntIP:  m.oc.Properties.APIServerProfile.IntIP,
+		IngressIP: m.oc.Properties.IngressProfiles[0].IP,
+	}
+
+	if m.oc.Properties.NetworkProfile.GatewayPrivateEndpointIP != "" {
+		dnsConfig.GatewayPrivateEndpointIP = m.oc.Properties.NetworkProfile.GatewayPrivateEndpointIP
+		dnsConfig.GatewayDomains = append(m.env.GatewayDomains(), m.oc.Properties.ImageRegistryStorageAccountName+".blob."+m.env.Environment().StorageEndpointSuffix)
+	}
+	fmt.Fprintf(os.Stderr, "XXX: dnsConfig=%v\n", dnsConfig)
 
 	fileFetcher := &aroFileFetcher{directory: "/"}
 
@@ -129,6 +162,7 @@ func (m *manager) applyInstallConfigCustomisations(installConfig *installconfig.
 
 	// Add ARO Manifests to bootstrap Files and CVO Overrides
 	if aroManifestsExist {
+		fmt.Fprintf(os.Stderr, "XXX: aroManifestsExist\n")
 		if err = appendFilesToCvoOverrides(aroManifests, g); err != nil {
 			return nil, err
 		}

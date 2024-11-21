@@ -160,9 +160,10 @@ func TestApplyInstallConfigCustomisations(t *testing.T) {
 				SPObjectID:   "test-spobject-id",
 			},
 			NetworkProfile: api.NetworkProfile{
-				PodCIDR:                "192.168.100.0/23",
-				ServiceCIDR:            "192.168.200.0/23",
-				SoftwareDefinedNetwork: api.SoftwareDefinedNetworkOVNKubernetes,
+				PodCIDR:                  "192.168.100.0/23",
+				ServiceCIDR:              "192.168.200.0/23",
+				GatewayPrivateEndpointIP: "10.0.0.254",
+				SoftwareDefinedNetwork:   api.SoftwareDefinedNetworkOVNKubernetes,
 			},
 			MasterProfile: api.MasterProfile{
 				VMSize:   api.VMSizeStandardD8asV4,
@@ -183,15 +184,9 @@ func TestApplyInstallConfigCustomisations(t *testing.T) {
 					IP: "192.168.0.1",
 				},
 			},
-			SSHKey: sshKeyDer.Bytes,
+			ImageRegistryStorageAccountName: "test-image-registry-sa",
+			SSHKey:                          sshKeyDer.Bytes,
 		},
-		/*
-			Identity: &api.Identity{
-				Type:                   "",
-				UserAssignedIdentities: "",
-				IdentityURL:            "",
-			},
-		*/
 	}
 
 	log.Info("Setting up Subscription")
